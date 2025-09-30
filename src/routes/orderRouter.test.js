@@ -32,11 +32,11 @@ const dinerUser = {
   roles: [{ role: Role.Diner }],
   isRole: (role) => role === Role.Diner,
 };
-const adminUser = {
+/*const adminUser = {
   ...dinerUser,
   roles: [{ role: Role.Admin }],
   isRole: (role) => role === Role.Admin,
-};
+};*/
 
 // mock authenticateToken
 beforeAll(() => {
