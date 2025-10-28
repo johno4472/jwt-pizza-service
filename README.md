@@ -52,4 +52,4 @@ Nodemon is assumed to be installed globally so that you can have hot reloading w
 npm -g install nodemon
 ```
 
-test
+tests
