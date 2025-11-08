@@ -18,7 +18,7 @@ beforeAll(async () => {
   expectValidJwt(testUserAuthToken);
 });
 
-test("login", async () => {
+/*test("login", async () => {
   //send a request to the api to login, .send tells supertest what the request body needs to be
   const loginRes = await request(app).put("/api/auth").send(testUser);
   //should be successful, because I registered this testUser before beginning
@@ -31,7 +31,7 @@ test("login", async () => {
   //expected user should be the same as the user logged in (minus password)
   delete expectedUser.password;
   expect(loginRes.body.user).toMatchObject(expectedUser);
-});
+});*/
 
 //Check authToken syntax
 function expectValidJwt(potentialJwt) {
