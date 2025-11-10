@@ -11,34 +11,34 @@ function greetingChanged() {
 
 // Middleware to track requests
 function requestTracker(req, res, next) {
-  const endpoint = `[${req.method}] ${req.path}`;
-  requests[endpoint] = (requests[endpoint] || 0) + 1;
+  //const endpoint = `[${req.method}] ${req.path}`;
+  //requests[endpoint] = (requests[endpoint] || 0) + 1;
   next();
 }
 
 // This will periodically send metrics to Grafana
-setInterval(() => {
-  const metrics = [];
-  Object.keys(requests).forEach((endpoint) => {
-    metrics.push(
-      createMetric("requests", requests[endpoint], "1", "sum", "asInt", {
-        endpoint,
-      })
-    );
-    metrics.push(
-      createMetric(
-        "greetingChange",
-        greetingChangedCount,
-        "1",
-        "sum",
-        "asInt",
-        {}
-      )
-    );
-  });
+// setInterval(() => {
+//   const metrics = [];
+//   Object.keys(requests).forEach((endpoint) => {
+//     metrics.push(
+//       createMetric("requests", requests[endpoint], "1", "sum", "asInt", {
+//         endpoint,
+//       })
+//     );
+//     metrics.push(
+//       createMetric(
+//         "greetingChange",
+//         greetingChangedCount,
+//         "1",
+//         "sum",
+//         "asInt",
+//         {}
+//       )
+//     );
+//   });
 
-  sendMetricToGrafana(metrics);
-}, 10000);
+//   sendMetricToGrafana(metrics);
+// }, 10000);
 
 function createMetric(
   metricName,
