@@ -128,7 +128,9 @@ function sendMetricToGrafana(metrics) {
   })
     .then((response) => {
       if (!response.ok) {
-        throw new Error(`HTTP status: ${response.status}`);
+        throw new Error(
+          `HTTP status: ${response.status} url->${config.metrics.url}`
+        );
       }
     })
     .catch((error) => {
