@@ -1,3 +1,4 @@
+const { get } = require("http");
 const config = require("./config");
 
 // Metrics stored in memory
@@ -11,34 +12,58 @@ function greetingChanged() {
 
 // Middleware to track requests
 function requestTracker(req, res, next) {
-  //const endpoint = `[${req.method}] ${req.path}`;
-  //requests[endpoint] = (requests[endpoint] || 0) + 1;
+  const endpoint = `[${req.method}] ${req.path}`;
+  requests[endpoint] = (requests[endpoint] || 0) + 1;
   next();
 }
 
-// This will periodically send metrics to Grafana
-// setInterval(() => {
-//   const metrics = [];
-//   Object.keys(requests).forEach((endpoint) => {
-//     metrics.push(
-//       createMetric("requests", requests[endpoint], "1", "sum", "asInt", {
-//         endpoint,
-//       })
-//     );
-//     metrics.push(
-//       createMetric(
-//         "greetingChange",
-//         greetingChangedCount,
-//         "1",
-//         "sum",
-//         "asInt",
-//         {}
-//       )
-//     );
-//   });
+//alternate way to send metrics periodically to grafana
+function sendMetricsPeriodically(period) {
+  const timer = setInterval(() => {
+    try {
+      const metrics = new OtelMetricBuilder();
+      metrics.add(httpMetrics);
+      metrics.add(systemMetrics);
+      metrics.add(userMetrics);
+      metrics.add(purchaseMetrics);
+      metrics.add(authMetrics);
 
-//   sendMetricToGrafana(metrics);
-// }, 10000);
+      metrics.sendToGrafana();
+    } catch (error) {
+      console.log("Error sending metrics", error);
+    }
+  }, period);
+}
+// This will periodically send metrics to Grafana
+setInterval(() => {
+  const metrics = [];
+  metrics.push(createMetric("CPU Usage", getCpuUsagePercentage()));
+  metrics.push("Memory Usage", getMemoryUsagePercentage());
+  Object.keys(requests).forEach((endpoint) => {
+    metrics.push(
+      createMetric("requests", requests[endpoint], "1", "sum", "asInt", {
+        endpoint,
+      })
+    );
+  });
+
+  sendMetricToGrafana(metrics);
+}, 10000);
+
+const os = require("os");
+
+function getCpuUsagePercentage() {
+  const cpuUsage = os.loadavg()[0] / os.cpus().length;
+  return cpuUsage.toFixed(2) * 100;
+}
+
+function getMemoryUsagePercentage() {
+  const totalMemory = os.totalmem();
+  const freeMemory = os.freemem();
+  const usedMemory = totalMemory - freeMemory;
+  const memoryUsage = (usedMemory / totalMemory) * 100;
+  return memoryUsage.toFixed(2);
+}
 
 function createMetric(
   metricName,
@@ -48,7 +73,7 @@ function createMetric(
   valueType,
   attributes
 ) {
-  attributes = { ...attributes, source: config.source };
+  attributes = { ...attributes, source: config.metrics.source };
 
   const metric = {
     name: metricName,
@@ -93,11 +118,11 @@ function sendMetricToGrafana(metrics) {
     ],
   };
 
-  fetch(`${config.url}`, {
+  fetch(`${config.metrics.url}`, {
     method: "POST",
     body: JSON.stringify(body),
     headers: {
-      Authorization: `Bearer ${config.apiKey}`,
+      Authorization: `Bearer ${config.metrics.apiKey}`,
       "Content-Type": "application/json",
     },
   })
