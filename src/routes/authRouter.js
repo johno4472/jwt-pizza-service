@@ -100,10 +100,15 @@ authRouter.put(
   "/",
   metrics.requestTracker,
   asyncHandler(async (req, res) => {
-    const { email, password } = req.body;
-    const user = await DB.getUser(email, password);
-    const auth = await setAuth(user);
-    res.json({ user: user, token: auth });
+    try {
+      const { email, password } = req.body;
+      const user = await DB.getUser(email, password);
+      const auth = await setAuth(user);
+      metrics.authEvent("Success");
+      res.json({ user: user, token: auth });
+    } catch (err) {
+      metrics.authEvent("Failure");
+    }
   })
 );
 
@@ -114,6 +119,7 @@ authRouter.delete(
   authRouter.authenticateToken,
   asyncHandler(async (req, res) => {
     await clearAuth(req);
+    metrics.logoutEvent();
     res.json({ message: "logout successful" });
   })
 );

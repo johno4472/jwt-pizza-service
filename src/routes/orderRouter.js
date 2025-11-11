@@ -119,6 +119,7 @@ orderRouter.post(
   metrics.requestTracker,
   authRouter.authenticateToken,
   asyncHandler(async (req, res) => {
+    const start = performance.now();
     const orderReq = req.body;
     const order = await DB.addDinerOrder(req.user, orderReq);
     const r = await fetch(`${config.factory.url}/api/order`, {
@@ -134,8 +135,20 @@ orderRouter.post(
     });
     const j = await r.json();
     if (r.ok) {
+      metrics.pizzaPurchase(
+        "success",
+        performance.now() - start,
+        order.items.reduce((acc, curr) => acc + curr.price, 0),
+        order.items.length
+      );
       res.send({ order, followLinkToEndChaos: j.reportUrl, jwt: j.jwt });
     } else {
+      metrics.pizzaPurchase(
+        "failure",
+        performance.now() - start,
+        order.items.reduce((acc, curr) => acc + curr.price, 0),
+        0
+      );
       res.status(500).send({
         message: "Failed to fulfill order at factory",
         followLinkToEndChaos: j.reportUrl,

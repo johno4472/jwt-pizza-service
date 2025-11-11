@@ -1,20 +1,85 @@
-const { get } = require("http");
+const { send } = require("process");
 const config = require("./config");
 
 // Metrics stored in memory
 const requests = {};
-let greetingChangedCount = 0;
+let pizzas_sold = 0;
+let pizza_failures = 0;
+let total_revenue = 0;
+let outerMetrics = [];
+let activeUsers = 0;
+let allRequests = 0;
 
-// Function to track when the greeting is changed
-function greetingChanged() {
-  greetingChangedCount++;
+function authEvent(status) {
+  if (status == "Success") {
+    activeUsers += 1;
+    outerMetrics.push(
+      createMetric("authentication_actions", 1, "1", "sum", "asInt", {
+        type: "success",
+      })
+    );
+  } else {
+    outerMetrics.push(
+      createMetric("authentication_actions", 1, "1", "sum", "asInt", {
+        type: "failure",
+      })
+    );
+  }
 }
+
+function logoutEvent() {
+  activeUsers -= 1;
+}
+
+latencyTracker = (req, res, next) => {
+  const dateNow = Date.now();
+  let send = res.send;
+  res.send = (resBody) => {
+    outerMetrics.push(
+      createMetric(
+        "request_latency",
+        Date.now() - dateNow,
+        "ms",
+        "gauge",
+        "asDouble"
+      )
+    );
+    res.send = send;
+    return res.send(resBody);
+  };
+  next();
+};
 
 // Middleware to track requests
 function requestTracker(req, res, next) {
   const endpoint = `[${req.method}] ${req.path}`;
   requests[endpoint] = (requests[endpoint] || 0) + 1;
   next();
+}
+
+function pizzaPurchase(status, latency, price, quantity) {
+  if (status == "success") {
+    pizzas_sold += quantity;
+    total_revenue += price;
+    outerMetrics.push(
+      createMetric("pizza_purchases", pizzas_sold, "1", "sum", "asInt", {
+        type: "pizza_success",
+      })
+    );
+    outerMetrics.push(
+      createMetric("total_revenue", total_revenue, "1", "sum", "asInt")
+    );
+    outerMetrics.push(
+      createMetric("pizza_latency", latency, "ms", "gauge", "asDouble")
+    );
+  } else {
+    pizza_failures += 1;
+    outerMetrics.push(
+      createMetric("pizza_purchases", pizza_failures, "1", "sum", "asInt", {
+        type: "pizza_failure",
+      })
+    );
+  }
 }
 
 //alternate way to send metrics periodically to grafana
@@ -36,16 +101,54 @@ function sendMetricsPeriodically(period) {
 }
 // This will periodically send metrics to Grafana
 setInterval(() => {
+  sendMetricToGrafana(outerMetrics);
+  outerMetrics = [];
+  pizzas_sold = 0;
+  pizza_failures = 0;
+  total_revenue = 0;
   const metrics = [];
-  metrics.push(createMetric("CPU Usage", getCpuUsagePercentage()));
-  metrics.push("Memory Usage", getMemoryUsagePercentage());
+  metrics.push(
+    createMetric(
+      "active_users", // metricName
+      activeUsers, // metricValue
+      "1", // metricUnit (percentage)
+      "gauge", // metricType (gauges represent instantaneous values)
+      "asInt"
+    )
+  );
+  metrics.push(
+    createMetric(
+      "CPU Usage", // metricName
+      getCpuUsagePercentage(), // metricValue
+      "%", // metricUnit (percentage)
+      "gauge", // metricType (gauges represent instantaneous values)
+      "doubleValue"
+    )
+  );
+
+  metrics.push(
+    createMetric(
+      "Memory Usage", // metricName
+      getMemoryUsagePercentage(), // metricValue
+      "%", // metricUnit (percentage)
+      "gauge", // metricType (gauges represent instantaneous values)
+      "doubleValue"
+    )
+  );
+  allRequests = 0;
   Object.keys(requests).forEach((endpoint) => {
+    allRequests += requests[endpoint];
     metrics.push(
       createMetric("requests", requests[endpoint], "1", "sum", "asInt", {
         endpoint,
       })
     );
   });
+  metrics.push(
+    createMetric("requests", allRequests, "1", "sum", "asInt", {
+      endpoint: "all",
+    })
+  );
 
   sendMetricToGrafana(metrics);
 }, 10000);
@@ -128,9 +231,7 @@ function sendMetricToGrafana(metrics) {
   })
     .then((response) => {
       if (!response.ok) {
-        throw new Error(
-          `HTTP status: ${response.status} url->${config.metrics.url}`
-        );
+        throw new Error(`HTTP status: ${response.status}`);
       }
     })
     .catch((error) => {
@@ -138,4 +239,10 @@ function sendMetricToGrafana(metrics) {
     });
 }
 
-module.exports = { requestTracker, greetingChanged };
+module.exports = {
+  requestTracker,
+  pizzaPurchase,
+  authEvent,
+  latencyTracker,
+  logoutEvent,
+};
