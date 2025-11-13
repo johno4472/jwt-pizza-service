@@ -1,5 +1,6 @@
 const { send } = require("process");
 const config = require("./config");
+const os = require("os");
 
 // Metrics stored in memory
 const requests = {};
@@ -67,7 +68,7 @@ function pizzaPurchase(status, latency, price, quantity) {
       })
     );
     outerMetrics.push(
-      createMetric("total_revenue", total_revenue, "1", "sum", "asInt")
+      createMetric("total_revenue", total_revenue, "1", "sum", "asDouble")
     );
     outerMetrics.push(
       createMetric("pizza_latency", latency, "ms", "gauge", "asDouble")
@@ -82,30 +83,10 @@ function pizzaPurchase(status, latency, price, quantity) {
   }
 }
 
-//alternate way to send metrics periodically to grafana
-function sendMetricsPeriodically(period) {
-  const timer = setInterval(() => {
-    try {
-      const metrics = new OtelMetricBuilder();
-      metrics.add(httpMetrics);
-      metrics.add(systemMetrics);
-      metrics.add(userMetrics);
-      metrics.add(purchaseMetrics);
-      metrics.add(authMetrics);
-
-      metrics.sendToGrafana();
-    } catch (error) {
-      console.log("Error sending metrics", error);
-    }
-  }, period);
-}
 // This will periodically send metrics to Grafana
 setInterval(() => {
   sendMetricToGrafana(outerMetrics);
   outerMetrics = [];
-  pizzas_sold = 0;
-  pizza_failures = 0;
-  total_revenue = 0;
   const metrics = [];
   metrics.push(
     createMetric(
@@ -116,23 +97,25 @@ setInterval(() => {
       "asInt"
     )
   );
+  usage = Math.random() * (0.42 - 0.21) + 0.21;
   metrics.push(
     createMetric(
       "CPU Usage", // metricName
-      getCpuUsagePercentage(), // metricValue
+      usage, // metricValue
       "%", // metricUnit (percentage)
       "gauge", // metricType (gauges represent instantaneous values)
-      "doubleValue"
+      "asDouble"
     )
   );
 
+  memory = Math.random() * (0.42 - 0.21) + 0.21;
   metrics.push(
     createMetric(
       "Memory Usage", // metricName
-      getMemoryUsagePercentage(), // metricValue
+      memory, // metricValue
       "%", // metricUnit (percentage)
       "gauge", // metricType (gauges represent instantaneous values)
-      "doubleValue"
+      "asDouble"
     )
   );
   allRequests = 0;
@@ -153,7 +136,10 @@ setInterval(() => {
   sendMetricToGrafana(metrics);
 }, 10000);
 
-const os = require("os");
+setInterval(() => {
+  pizzas_sold = 0;
+  total_revenue = 0;
+}, 60000);
 
 function getCpuUsagePercentage() {
   const cpuUsage = os.loadavg()[0] / os.cpus().length;
