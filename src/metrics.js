@@ -141,6 +141,12 @@ setInterval(() => {
   total_revenue = 0;
 }, 60000);
 
+setInterval(() => {
+  if (activeUsers >= 1) {
+    activeUsers -= 1;
+  }
+}, 300000);
+
 function getCpuUsagePercentage() {
   const cpuUsage = os.loadavg()[0] / os.cpus().length;
   return cpuUsage.toFixed(2) * 100;
