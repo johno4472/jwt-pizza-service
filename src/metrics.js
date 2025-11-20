@@ -11,6 +11,17 @@ let outerMetrics = [];
 let activeUsers = 0;
 let allRequests = 0;
 
+function reset() {
+  requests = {};
+  pizzas_sold = 0;
+  pizzas_sold = 0;
+  pizza_failures = 0;
+  total_revenue = 0;
+  outerMetrics = [];
+  activeUsers = 0;
+  allRequests = 0;
+}
+
 function authEvent(status) {
   if (status == "Success") {
     activeUsers += 1;
@@ -53,7 +64,7 @@ latencyTracker = (req, res, next) => {
 
 // Middleware to track requests
 function requestTracker(req, res, next) {
-  const endpoint = `[${req.method}] ${req.path}`;
+  const endpoint = `[${req.method}]`;
   requests[endpoint] = (requests[endpoint] || 0) + 1;
   next();
 }
@@ -97,7 +108,6 @@ setInterval(() => {
       "asInt"
     )
   );
-  usage = Math.random() * (0.42 - 0.21) + 0.21;
   metrics.push(
     createMetric(
       "CPU Usage", // metricName
@@ -108,7 +118,6 @@ setInterval(() => {
     )
   );
 
-  memory = Math.random() * (0.42 - 0.21) + 0.21;
   metrics.push(
     createMetric(
       "Memory Usage", // metricName
@@ -134,6 +143,7 @@ setInterval(() => {
   );
 
   sendMetricToGrafana(metrics);
+  reset();
 }, 10000);
 
 setInterval(() => {
