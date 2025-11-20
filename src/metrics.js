@@ -101,7 +101,7 @@ setInterval(() => {
   metrics.push(
     createMetric(
       "CPU Usage", // metricName
-      usage, // metricValue
+      getCpuUsagePercentage(), // metricValue
       "%", // metricUnit (percentage)
       "gauge", // metricType (gauges represent instantaneous values)
       "asDouble"
@@ -112,7 +112,7 @@ setInterval(() => {
   metrics.push(
     createMetric(
       "Memory Usage", // metricName
-      memory, // metricValue
+      getMemoryUsagePercentage(), // metricValue
       "%", // metricUnit (percentage)
       "gauge", // metricType (gauges represent instantaneous values)
       "asDouble"
