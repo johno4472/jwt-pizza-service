@@ -9,7 +9,7 @@ let pizza_failures = 0;
 let total_revenue = 0;
 let activeUsers = 0;
 let allRequests = 0;
-const metrics = [];
+let metrics = [];
 
 function reset() {
   requests = {};
