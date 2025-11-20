@@ -3,7 +3,7 @@ const config = require("./config");
 const os = require("os");
 
 // Metrics stored in memory
-const requests = {};
+let requests = {};
 let pizzas_sold = 0;
 let pizza_failures = 0;
 let total_revenue = 0;
