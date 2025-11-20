@@ -7,9 +7,9 @@ const requests = {};
 let pizzas_sold = 0;
 let pizza_failures = 0;
 let total_revenue = 0;
-let outerMetrics = [];
 let activeUsers = 0;
 let allRequests = 0;
+const metrics = [];
 
 function reset() {
   requests = {};
@@ -17,21 +17,20 @@ function reset() {
   pizzas_sold = 0;
   pizza_failures = 0;
   total_revenue = 0;
-  outerMetrics = [];
-  activeUsers = 0;
   allRequests = 0;
+  metrics = [];
 }
 
 function authEvent(status) {
   if (status == "Success") {
     activeUsers += 1;
-    outerMetrics.push(
+    metrics.push(
       createMetric("authentication_actions", 1, "1", "sum", "asInt", {
         type: "success",
       })
     );
   } else {
-    outerMetrics.push(
+    metrics.push(
       createMetric("authentication_actions", 1, "1", "sum", "asInt", {
         type: "failure",
       })
@@ -47,7 +46,7 @@ latencyTracker = (req, res, next) => {
   const dateNow = Date.now();
   let send = res.send;
   res.send = (resBody) => {
-    outerMetrics.push(
+    metrics.push(
       createMetric(
         "request_latency",
         Date.now() - dateNow,
@@ -73,20 +72,20 @@ function pizzaPurchase(status, latency, price, quantity) {
   if (status == "success") {
     pizzas_sold += quantity;
     total_revenue += price;
-    outerMetrics.push(
+    metrics.push(
       createMetric("pizza_purchases", pizzas_sold, "1", "sum", "asInt", {
         type: "pizza_success",
       })
     );
-    outerMetrics.push(
+    metrics.push(
       createMetric("total_revenue", total_revenue, "1", "sum", "asDouble")
     );
-    outerMetrics.push(
+    metrics.push(
       createMetric("pizza_latency", latency, "ms", "gauge", "asDouble")
     );
   } else {
     pizza_failures += 1;
-    outerMetrics.push(
+    metrics.push(
       createMetric("pizza_purchases", pizza_failures, "1", "sum", "asInt", {
         type: "pizza_failure",
       })
@@ -96,9 +95,6 @@ function pizzaPurchase(status, latency, price, quantity) {
 
 // This will periodically send metrics to Grafana
 setInterval(() => {
-  sendMetricToGrafana(outerMetrics);
-  outerMetrics = [];
-  const metrics = [];
   metrics.push(
     createMetric(
       "active_users", // metricName
@@ -144,11 +140,6 @@ setInterval(() => {
 
   sendMetricToGrafana(metrics);
   reset();
-}, 10000);
-
-setInterval(() => {
-  pizzas_sold = 0;
-  total_revenue = 0;
 }, 60000);
 
 setInterval(() => {
