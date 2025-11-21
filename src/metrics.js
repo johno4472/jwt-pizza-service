@@ -14,7 +14,6 @@ let metrics = [];
 function reset() {
   requests = {};
   pizzas_sold = 0;
-  pizzas_sold = 0;
   pizza_failures = 0;
   total_revenue = 0;
   allRequests = 0;
@@ -70,16 +69,12 @@ function requestTracker(req, res, next) {
 
 function pizzaPurchase(status, latency, price, quantity) {
   if (status == "success") {
-    pizzas_sold += quantity;
-    total_revenue += price;
     metrics.push(
-      createMetric("pizza_purchases", pizzas_sold, "1", "sum", "asInt", {
+      createMetric("pizza_purchases", quantity, "1", "sum", "asInt", {
         type: "pizza_success",
       })
     );
-    metrics.push(
-      createMetric("total_revenue", total_revenue, "1", "sum", "asDouble")
-    );
+    metrics.push(createMetric("total_revenue", price, "1", "sum", "asDouble"));
     metrics.push(
       createMetric("pizza_latency", latency, "ms", "gauge", "asDouble")
     );
