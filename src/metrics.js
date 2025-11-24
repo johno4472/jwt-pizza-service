@@ -3,7 +3,7 @@ const config = require("./config");
 const os = require("os");
 
 // Metrics stored in memory
-let requests = {};
+const requests = {};
 let pizzas_sold = 0;
 let pizza_failures = 0;
 let total_revenue = 0;
@@ -12,11 +12,11 @@ let allRequests = 0;
 let metrics = [];
 
 function reset() {
-  requests = {};
-  pizzas_sold = 0;
-  pizza_failures = 0;
-  total_revenue = 0;
-  allRequests = 0;
+  // requests = {};
+  // pizzas_sold = 0;
+  // pizza_failures = 0;
+  // total_revenue = 0;
+  // allRequests = 0;
   metrics = [];
 }
 
@@ -135,7 +135,7 @@ setInterval(() => {
 
   sendMetricToGrafana(metrics);
   reset();
-}, 60000);
+}, 600);
 
 setInterval(() => {
   if (activeUsers >= 1) {
