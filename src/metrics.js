@@ -27,13 +27,13 @@ function authEvent(status) {
   if (status == "Success") {
     activeUsers += 1;
     metrics.push(
-      createMetric("authentication_actions", 1, "1", "sum", "asInt", {
+      createMetric("authentication_actions", 1, "1", "gauge", "asInt", {
         type: "success",
       })
     );
   } else {
     metrics.push(
-      createMetric("authentication_actions", 1, "1", "sum", "asInt", {
+      createMetric("authentication_actions", 1, "1", "gauge", "asInt", {
         type: "failure",
       })
     );
@@ -73,18 +73,20 @@ function requestTracker(req, res, next) {
 function pizzaPurchase(status, latency, price, quantity) {
   if (status == "success") {
     metrics.push(
-      createMetric("pizza_purchases", quantity, "1", "sum", "asInt", {
+      createMetric("pizza_purchases", quantity, "1", "gauge", "asInt", {
         type: "pizza_success",
       })
     );
-    metrics.push(createMetric("total_revenue", price, "1", "sum", "asDouble"));
+    metrics.push(
+      createMetric("total_revenue", price, "1", "gauge", "asDouble")
+    );
     metrics.push(
       createMetric("pizza_latency", latency, "ms", "gauge", "asDouble")
     );
   } else {
     pizza_failures += 1;
     metrics.push(
-      createMetric("pizza_purchases", pizza_failures, "1", "sum", "asInt", {
+      createMetric("pizza_purchases", pizza_failures, "1", "gauge", "asInt", {
         type: "pizza_failure",
       })
     );
@@ -125,13 +127,13 @@ setInterval(() => {
   Object.keys(requests).forEach((endpoint) => {
     allRequests += requests[endpoint];
     metrics.push(
-      createMetric("requests", requests[endpoint], "1", "sum", "asInt", {
+      createMetric("requests", requests[endpoint], "1", "gauge", "asInt", {
         endpoint,
       })
     );
   });
   metrics.push(
-    createMetric("requests", allRequests, "1", "sum", "asInt", {
+    createMetric("requests", allRequests, "1", "gauge", "asInt", {
       endpoint: "all",
     })
   );
@@ -191,7 +193,8 @@ function createMetric(
   });
 
   if (metricType === "sum") {
-    metric[metricType].aggregationTemporality = "AGGREGATION_TEMPORALITY_DELTA";
+    metric[metricType].aggregationTemporality =
+      "AGGREGATION_TEMPORALITY_CUMULATIVE";
     metric[metricType].isMonotonic = true;
   }
 
