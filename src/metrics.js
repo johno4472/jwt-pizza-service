@@ -18,9 +18,9 @@ function reset() {
   // total_revenue = 0;
   allRequests = 0;
   metrics = [];
-  for (let key in requests) {
-    requests[key] = 0;
-  }
+  // for (let key in requests) {
+  //   requests[key] = 0;
+  // }
 }
 
 function authEvent(status) {
