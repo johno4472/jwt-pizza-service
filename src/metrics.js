@@ -18,7 +18,7 @@ function reset() {
   // total_revenue = 0;
   allRequests = 0;
   metrics = [];
-  for (const key of requests.keys()) {
+  for (let key in requests) {
     requests[key] = 0;
   }
 }
