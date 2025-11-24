@@ -18,9 +18,6 @@ function reset() {
   // total_revenue = 0;
   allRequests = 0;
   metrics = [];
-  // for (let key in requests) {
-  //   requests[key] = 0;
-  // }
 }
 
 function authEvent(status) {
@@ -79,7 +76,7 @@ function pizzaPurchase(status, latency, price, quantity) {
     );
     metrics.push(createMetric("total_revenue", price, "1", "sum", "asDouble"));
     metrics.push(
-      createMetric("pizza_latency", latency, "ms", "sum", "asDouble")
+      createMetric("pizza_latency", latency, "ms", "gauge", "asDouble")
     );
   } else {
     pizza_failures += 1;
@@ -138,7 +135,7 @@ setInterval(() => {
 
   sendMetricToGrafana(metrics);
   reset();
-}, 60000);
+}, 600);
 
 setInterval(() => {
   if (activeUsers >= 1) {
