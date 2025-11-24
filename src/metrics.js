@@ -18,6 +18,9 @@ function reset() {
   // total_revenue = 0;
   allRequests = 0;
   metrics = [];
+  for (const key of requests.keys()) {
+    requests[key] = 0;
+  }
 }
 
 function authEvent(status) {
@@ -135,7 +138,7 @@ setInterval(() => {
 
   sendMetricToGrafana(metrics);
   reset();
-}, 30000);
+}, 60000);
 
 setInterval(() => {
   if (activeUsers >= 1) {
