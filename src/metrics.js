@@ -16,7 +16,7 @@ function reset() {
   // pizzas_sold = 0;
   // pizza_failures = 0;
   // total_revenue = 0;
-  // allRequests = 0;
+  allRequests = 0;
   metrics = [];
 }
 
@@ -135,7 +135,7 @@ setInterval(() => {
 
   sendMetricToGrafana(metrics);
   reset();
-}, 600);
+}, 30000);
 
 setInterval(() => {
   if (activeUsers >= 1) {
