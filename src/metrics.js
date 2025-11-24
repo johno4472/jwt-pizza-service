@@ -27,13 +27,13 @@ function authEvent(status) {
   if (status == "Success") {
     activeUsers += 1;
     metrics.push(
-      createMetric("authentication_actions", 1, "1", "gauge", "asInt", {
+      createMetric("authentication_actions", 1, "1", "sum", "asInt", {
         type: "success",
       })
     );
   } else {
     metrics.push(
-      createMetric("authentication_actions", 1, "1", "gauge", "asInt", {
+      createMetric("authentication_actions", 1, "1", "sum", "asInt", {
         type: "failure",
       })
     );
@@ -73,20 +73,18 @@ function requestTracker(req, res, next) {
 function pizzaPurchase(status, latency, price, quantity) {
   if (status == "success") {
     metrics.push(
-      createMetric("pizza_purchases", quantity, "1", "gauge", "asInt", {
+      createMetric("pizza_purchases", quantity, "1", "sum", "asInt", {
         type: "pizza_success",
       })
     );
+    metrics.push(createMetric("total_revenue", price, "1", "sum", "asDouble"));
     metrics.push(
-      createMetric("total_revenue", price, "1", "gauge", "asDouble")
-    );
-    metrics.push(
-      createMetric("pizza_latency", latency, "ms", "gauge", "asDouble")
+      createMetric("pizza_latency", latency, "ms", "sum", "asDouble")
     );
   } else {
     pizza_failures += 1;
     metrics.push(
-      createMetric("pizza_purchases", pizza_failures, "1", "gauge", "asInt", {
+      createMetric("pizza_purchases", pizza_failures, "1", "sum", "asInt", {
         type: "pizza_failure",
       })
     );
@@ -127,13 +125,13 @@ setInterval(() => {
   Object.keys(requests).forEach((endpoint) => {
     allRequests += requests[endpoint];
     metrics.push(
-      createMetric("requests", requests[endpoint], "1", "gauge", "asInt", {
+      createMetric("requests", requests[endpoint], "1", "sum", "asInt", {
         endpoint,
       })
     );
   });
   metrics.push(
-    createMetric("requests", allRequests, "1", "gauge", "asInt", {
+    createMetric("requests", allRequests, "1", "sum", "asInt", {
       endpoint: "all",
     })
   );
