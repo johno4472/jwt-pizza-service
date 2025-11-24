@@ -191,8 +191,7 @@ function createMetric(
   });
 
   if (metricType === "sum") {
-    metric[metricType].aggregationTemporality =
-      "AGGREGATION_TEMPORALITY_CUMULATIVE";
+    metric[metricType].aggregationTemporality = "AGGREGATION_TEMPORALITY_DELTA";
     metric[metricType].isMonotonic = true;
   }
 
