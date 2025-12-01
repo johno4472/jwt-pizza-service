@@ -108,6 +108,7 @@ authRouter.put(
       res.json({ user: user, token: auth });
     } catch (err) {
       metrics.authEvent("Failure");
+      return res.status(401).json({ message: "invalid credentials" });
     }
   })
 );
