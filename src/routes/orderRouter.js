@@ -172,6 +172,7 @@ orderRouter.post(
         order.items.reduce((acc, curr) => acc + curr.price, 0),
         0
       );
+      console.log("Failed to order pizza. You should see the endChaosLink now");
       res.status(500).send({
         message: "Failed to fulfill order at factory",
         followLinkToEndChaos: j.reportUrl,
