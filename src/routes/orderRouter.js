@@ -78,26 +78,6 @@ orderRouter.docs = [
   },
 ];
 
-let enableChaos = false;
-orderRouter.put(
-  "/chaos/:state",
-  authRouter.authenticateToken,
-  asyncHandler(async (req, res) => {
-    if (req.user.isRole(Role.Admin)) {
-      enableChaos = req.params.state === "true";
-    }
-
-    res.json({ chaos: enableChaos });
-  })
-);
-
-orderRouter.post("/", (req, res, next) => {
-  if (enableChaos && Math.random() < 0.5) {
-    throw new StatusCodeError("Chaos monkey", 500);
-  }
-  next();
-});
-
 // getMenu
 orderRouter.get(
   "/menu",
@@ -172,7 +152,7 @@ orderRouter.post(
         order.items.reduce((acc, curr) => acc + curr.price, 0),
         0
       );
-      console.log("Failed to order pizza. You should see the endChaosLink now");
+      console.log("Failed to order pizza.");
       res.status(500).send({
         message: "Failed to fulfill order at factory",
         followLinkToEndChaos: j.reportUrl,
